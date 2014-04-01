@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Userlist</title>
+	<script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<style> body{font-size : 30px;}</style>
+</head>
+<body>
+
+	<h1>User list</h1>
+
+	<a href="create.php">New user</a>
+
+	<div class="table">
+		 <table border="1">
+   <tr>
+    <th>Name</th>
+    <th>Age</th>
+    <th>City</th>
+	<th></th>
+   </tr>
+   {% for user in usersList %}
+   	<tr>
+   <td class="load"><div class="name" id="edit-name-{{ userID }}" onclick="editName{{userID}}">{{ user.name }}</div></td>
+   	<td class="load"><div class="age" id="edit-age-{{userAge}}" onclick="editAge({{userID}})">{{ user.age }}</div></td>
+   	<td class="load"><div class="city" id="edit-city-{{userID}}" onclick="editCity({{userID}}, {{ user.city_id }})">{{ user.city }}</div></td>
+	<td class="delete"> <a href="javascript:void(0)" onclick="deleteUser({{userID}})">Удалить</a></td>
+   	</tr>
+  {% endfor %}
+ </table>
+
+	</div>
+	
+<script>
+		function editCity(userID, selectedCityID) {
+				var cityPlace = $('#edit-city-'+userID);
+				var selectNode = $( "#citySelectorOriginal" ).clone();
+				selectNode.attr("id","citySelector-"+userID);
+				selectNode.attr("onchange","updateCity("+userID+");");
+				if ($("#citySelector-"+userID).length == 0) {
+					$('#edit-city-'+userID).text('');
+					selectNode.appendTo("#edit-city-"+userID);
+					var newCitySelector = $("#citySelector-"+userID);
+					newCitySelector.val(selectedCityID);
+				}
+			}
+
+			function updateCity (userID) {
+				var newCityID = $('#citySelector-'+userID).val();
+				var newCityName = $('#citySelector-'+userID+' option:selected' ).text();
+				jQuery.ajax({
+					url: '/index.php?action=updatecity',
+					dataType: 'json',
+					type: 'post',
+					data: {userID: userID, newCity: newCityID}
+				}).done (function(updateresp){
+					if (updateresp == 1) {
+						var cityPlace = $('#edit-city-'+userID);
+						cityPlace.attr("onclick", "editCity("+userID+", "+newCityID+");");
+						cityPlace.html(newCityName);			
+					} else {
+						alert("Ошибка");
+					} 
+				});
+			}
+
+			function editAge(userID) {
+				var agePlace = $('#edit-age-'+userID);
+				agePlace.html('<input id = "ageEditbox-'+userID+'" size = "20" maxlength = "3" value = "' + agePlace.text() + '" type="text" onblur = "updateAge('+userID+');" onkeypress = " if (event.keyCode == 13){updateAge('+userID+');}">');
+				$('#ageEditbox-'+userID).focus();
+			}
+
+
+			function updateAge(userID) {
+				var newAge = $('#ageEditbox-'+userID).val();
+				jQuery.ajax({
+					url: '/index.php?action=updateage',
+					dataType: 'json',
+					type: 'post',
+					data: {userID: userID, newAge: newAge}
+					}).done(function(updateresp) {                          
+						if (updateresp == 1) {
+							var agePlace = $('#edit-age-'+userID);
+							agePlace.html(newAge);
+						} else {
+							alert("Ошибка!");
+						}
+					});
+			}
+
+
+			function editName(userID) {
+				var namePlace = $('#edit-name-'+userID);
+				namePlace.html('<input id="nameEditbox-'+userID+'" size="20" maxlength="30" value="' + namePlace.text() + '" type="text" onblur="updateName('+userID+');" onkeypress="if ( event.keyCode == 13 ){updateName('+userID+');}">'); 
+				$('#nameEditbox-'+userID).focus();  
+			}
+
+
+			function updateName(userID) {
+				var newName = $('#nameEditbox-'+userID).val();
+				jQuery.ajax({
+					url: '/index.php?action=updatename',
+					dataType: 'json',
+					type: 'post',
+					data: {userID: userID, newName: newName}
+					}).done(function(updateresp) {                          
+						if (updateresp == 1) {
+							var namePlace = $('#edit-name-'+userID);
+							namePlace.html(newName);
+						} else {
+							alert("Ошибка!");
+						}
+					});
+			}
+
+			function deleteUser(userID){	
+				jQuery.ajax({
+					url:'/index.php?action=deleteuser',
+					dataType: 'json',
+					type: 'post',
+					data: {userID: userID}
+				}).done(function(updateresp) {                          
+						if (updateresp == 1) {
+							$('#userRow-'+userID).remove();
+						} else {
+							alert("Ошибка!");
+						}
+					});
+			}
+	</script>
+	
+</body>
+</html>
